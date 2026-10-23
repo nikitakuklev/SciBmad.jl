@@ -118,4 +118,19 @@ using Test
         @test isapprox(co.v0[1,5], 0.0; atol=1e-12)
         @test isapprox(co.v0[1,6], 0.0; atol=1e-12)
     end
+
+    @testset "Chromaticity with dispersion at the start point" begin
+        # FODO cell of docs/src/optimize.md, started at QF (Dx = 0.53 m) and at QD (Dx = 0.27 m).
+        # The δ-dependent closed orbit feeds second-order sextupole and bend terms into the
+        # chromaticity. Reference: five-point difference in δ of the tunes of the tracked
+        # one-turn matrix at the off-momentum closed orbit.
+        cell(k) = Beamline(circshift([Quadrupole(Kn1=0.36, L=0.5), Sextupole(Kn2=1.2, L=0.2), Drift(L=0.2),
+            SBend(L=6.5, angle=pi/132), Drift(L=0.2), Quadrupole(Kn1=-0.36, L=0.5), Sextupole(Kn2=-1.2, L=0.2),
+            Drift(L=0.2), SBend(L=6.5, angle=pi/132), Drift(L=0.2)], -k); species_ref=Species("electron"), pc_ref=18e9)
+        for k in (0, 5)
+            tw = twiss(cell(k); at=[], chrom=2)
+            @test isapprox(getterm(tw.q1, delta=1), -0.0691414453153; rtol=1e-9)
+            @test isapprox(getterm(tw.q2, delta=1), -0.2111866691407; rtol=1e-9)
+        end
+    end
 end

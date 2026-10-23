@@ -78,7 +78,7 @@ syntax `d<column>_<order>`. If `order==1`, then the `_1` can be omitted. E.g., t
 ```julia
 tw = twiss(bl; cols=["dx", "dx_2","dbeta1"], chrom=2)
 ```
-where the `chrom` keyword argument, which specifies solely the truncation order of δ, has been 
+where the `chrom` keyword argument, which specifies the truncation order of δ, has been 
 set appropriately. 
 
 For chromatic derivative calculation, you may need to set the keyword argument `rf_on=false`.
@@ -95,11 +95,16 @@ keyword arguments:
 - `rf_on::Bool`: If `false`, then any `RFParams` in any `LineElement`s are ignored for the 
     entirety of the Twiss tracking and calculation. Default is `true`
 - `order::Integer`: TPSA truncation order for all phase space coordinates used in the Twiss 
-    calculation, default is 1
-- `chrom::Integer`: TPSA truncation order for only δ, default is `order`
+    calculation, default is 1. If `chrom > order`, the coordinates are truncated at `chrom`
+- `chrom::Integer`: TPSA truncation order for δ, default is `order`
 - `GTPSA_descriptor::Union{Descriptor,Nothing}`: Custom GTPSA `Descriptor` to use for the Twiss 
     calculation, required to provide to do parametric normal form and lattice function 
-    calculations. Default is `Descriptor([order, order, order, order, order, chrom], max(order,chrom))`.
+    calculations. Default is `Descriptor([mo, mo, mo, mo, mo, chrom], mo)` with
+    `mo = max(order, chrom)`. A custom `Descriptor` must truncate every phase space coordinate
+    at its maximum order (only the parameters, and δ for a coasting beam, may be truncated
+    lower), e.g. `Descriptor(6, 3, 2, 1)` rather than `Descriptor([1, 1, 1, 1, 1, 2], 3, [1, 1], 1)`.
+    A lower cap drops the terms through which the δ- and parameter-dependent closed orbit enters
+    the δ and parameter dependence of the results.
 - `a_initial::Union{DAMap,Nothing}`: A `DAMap` of the initial transformation from normal form 
     coordinates to laboratory coordinates, to compute "open" lattice Twiss functions. Default is 
     `nothing`, to compute the periodic ("closed") lattice Twiss functions
@@ -276,7 +281,13 @@ function twiss(
 
   if isnothing(GTPSA_descriptor)
     storedesc = GTPSA.desc_current
-    GTPSA_descriptor = Descriptor([order, order, order, order, order, chrom], max(order,chrom))
+    # The normal form moves to the δ-dependent closed orbit by composition, x → x + D⋅δ + ...,
+    # which turns powers of the phase space coordinates into powers of δ:
+    # (x + D⋅δ)² = x² + 2x⋅D⋅δ + D²⋅δ². A coordinate capped below the maximum order loses these
+    # terms, e.g. the sextupole and bend contributions to the chromaticity when the start point
+    # has dispersion D.
+    mo = max(order, chrom)
+    GTPSA_descriptor = Descriptor([mo, mo, mo, mo, mo, chrom], mo)
     GTPSA.desc_current = storedesc # Don't reset the global
   elseif chrom != 1 || order != 1
     @info "`GTPSA_descriptor` has been explicitly provided: ignoring `order`/`chrom` inputs"

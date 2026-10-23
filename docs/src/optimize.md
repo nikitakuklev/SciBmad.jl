@@ -97,7 +97,7 @@ function res_tunes(u, beamline)
 end
 
 function jac_tunes(u, beamline)
-  dnf = Descriptor([1, 1, 1, 1, 1, 1], 2, [1, 1], 1)
+  dnf = Descriptor(6, 2, 2, 1)
   dk = params(dnf)
   beamline.context.kqf = u[1] + dk[1]
   beamline.context.kqd = u[2] + dk[2]
@@ -144,7 +144,7 @@ function res_chrom(u, beamline)
 end
 
 function jac_chrom(u, beamline)
-  dnf = Descriptor([1, 1, 1, 1, 1, 2], 3, [1, 1], 1)
+  dnf = Descriptor(6, 3, 2, 1)
   dk = params(dnf)
   beamline.context.ksf = u[1] + dk[1]
   beamline.context.ksd = u[2] + dk[2]

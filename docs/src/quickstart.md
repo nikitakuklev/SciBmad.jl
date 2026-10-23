@@ -219,12 +219,16 @@ Beyond the purely linear optics, `twiss` can also compute higher-order and nonli
 quantities by increasing the order of the underlying truncated power series (DA) map used
 internally. All quantities are computed using SciBmad's Lie algebraic normal form analysis
 package [`NonlinearNormalForm`](https://github.com/bmad-sim/NonlinearNormalForm.jl). `twiss`
-exposes two independent "orders" that can be set:
+exposes two "orders" that can be set:
 
 - `chrom`, the order to which the energy deviation `δ` is truncated, for computing higher
   order chromatic quantities
 - `order`, the truncated order of all individual phase space variables, for computing
   amplitude-dependent tunes and resonance driving terms
+
+When `chrom > order`, the phase space variables are also truncated at `chrom`: the
+dispersion makes the closed orbit depend on `δ`, so each power of a phase space variable
+contributes a power of `δ` once the map is expanded around that orbit.
 
 For example, setting `chrom=2` will compute the chromaticities, and if requested in `cols`
 the Montague `w1`/`w2` functions, second-order dispersions `dx_2`/`dy_2`, chromatic beta

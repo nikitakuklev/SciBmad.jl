@@ -54,13 +54,16 @@ fodo.context.ksd = -1.2
 ```
 
 To do so, we will define a GTPSA `Descriptor` with two parameters, corresponding to
-infinitesimal variations in each of the quadrupoles. Because computing the tunes requires
-only 1st order in the phase space variables, we can save computation time by explicitly
-specifying the truncation orders for the variables to be 1, truncate the parameters part
-also at 1, but allow maximum order of 2:
+infinitesimal variations in each of the quadrupoles. Computing the tunes requires only 1st
+order in the phase space variables and their gradients add one order, so we truncate the
+parameters part at 1 and allow a maximum order of 2. The phase space variables must be
+truncated at this maximum order:
+`twiss` expands the map around the closed orbit, which depends on δ through the dispersion
+(and may depend on the parameters), and lower truncation orders for the phase space variables
+would drop terms of that expansion, e.g. the sextupole contribution to the chromaticities:
 
 ```{code-cell} julia
-dnf = Descriptor([1, 1, 1, 1, 1, 1], 2, [1, 1], 1)
+dnf = Descriptor(6, 2, 2, 1)
 dk = params(dnf)
 fodo.context.kqf += dk[1]
 fodo.context.kqd += dk[2]
@@ -107,8 +110,9 @@ grad(tw.beta2[1]) # [dbeta2/dkf, dbeta2/dkd]
 This goes for any column we output with Twiss.
 
 We can also see how the chromaticities vary with sextupole strength. To compute the
-chromaticity, we require 2nd order in δ. And since we need to see how this 2nd-order in δ
-quantity varies with parameters, the maximum truncation order must be increased to 3.
+chromaticity, we require 2nd order terms such as x⋅δ. And since we need to see how this
+quantity varies with parameters, the maximum truncation order, and with it the truncation
+order of the phase space variables, must be increased to 3.
 
 Before setting any parameters to be `TPS`'s from a different `Descriptor`, it is good to use
 `scalarize!` on the beamline, which changes all stored `TPS` values in a `Beamline` to be the
@@ -127,7 +131,7 @@ We then construct our new GTPSA descriptor and set the sextupole strengths as TP
 parameters:
 
 ```{code-cell} julia
-dnf2 = Descriptor([1, 1, 1, 1, 1, 2], 3, [1, 1], 1)
+dnf2 = Descriptor(6, 3, 2, 1)
 dk = params(dnf2)
 fodo.context.ksf += dk[1]
 fodo.context.ksd += dk[2]
@@ -158,13 +162,14 @@ driving term" $h_{2000}$ at the beginning depends on the sextupole strength. Thi
 re-`scalarize!` and then construct the appropriate GTPSA `Descriptor`: $h_{2000}$ requires
 only first order in the phase space coordinates, but a chromatic derivative adds one order
 to δ. However, to accurately compute any resonance driving term/detune coefficient, all
-phase space variables must have the same truncation order (thus 2 for all). Then, to see how
-this quantity depends on a parameter, we have to bump up the maximum order to 3.
+phase space variables must have the same truncation order. Then, to see how this quantity
+depends on a parameter, we have to bump up the maximum order, and with it the truncation order
+of all phase space variables, to 3.
 
 ```{code-cell} julia
 scalarize!(fodo)
 
-dnf3 = Descriptor([2, 2, 2, 2, 2, 2], 3, [1], 1)
+dnf3 = Descriptor(6, 3, 1, 1)
 dk = params(dnf3)
 fodo.context.ksf += dk[1]
 

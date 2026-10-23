@@ -120,7 +120,7 @@ if Base.JLOptions().code_coverage == 0 && get(ENV, "JULIA_REGISTRYCI_AUTOMERGE",
     fodo.context.kqd = -0.36
     fodo.context.ksf = 1.2
     fodo.context.ksd = -1.2
-    dnf = Descriptor([1, 1, 1, 1, 1, 1], 2, [1, 1], 1)
+    dnf = Descriptor(6, 2, 2, 1)
     dk = params(dnf)
     fodo.context.kqf += dk[1]
     fodo.context.kqd += dk[2]
@@ -132,7 +132,7 @@ if Base.JLOptions().code_coverage == 0 && get(ENV, "JULIA_REGISTRYCI_AUTOMERGE",
     grad(tw.beta2[1]) # [dbeta2/dkf, dbeta2/dkd]
 
     scalarize!(fodo)
-    dnf2 = Descriptor([1, 1, 1, 1, 1, 2], 3, [1, 1], 1)
+    dnf2 = Descriptor(6, 3, 2, 1)
     dk = params(dnf2)
     fodo.context.ksf += dk[1]
     fodo.context.ksd += dk[2]
@@ -143,7 +143,7 @@ if Base.JLOptions().code_coverage == 0 && get(ENV, "JULIA_REGISTRYCI_AUTOMERGE",
 
     scalarize!(fodo)
 
-    dnf3 = Descriptor([2, 2, 2, 2, 2, 2], 3, [1], 1)
+    dnf3 = Descriptor(6, 3, 1, 1)
     dk = params(dnf3)
     fodo.context.ksf += dk[1]
 
